@@ -1,0 +1,10 @@
+*.swp
+__pycache__/
+*.sqlite
+instance/
+*.yaml
+static/cache/
+*.db
+static/icons/
+atlantis-hub-content/
+*.bak
