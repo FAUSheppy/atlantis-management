@@ -1,0 +1,32 @@
+<head>
+    {% include "head.html" %}
+</head>
+<body>
+    <div class="navbar">
+        <div style="float: left;" class="navbar-el">{{ user or  "" }}</div>
+        <a href="/oauth2/sign_out" class="navbar-el">Logout</a>
+    </div>
+    <div class="main-container">
+        {% for service in services %}
+            <div class="seperator">
+            <h3 style="margin-left: 15px;">{{ services.name }}</h3>
+            <hr>
+            </div>
+            {% for hook in service.hook_operations %}
+            <a href="/hook-relay?service={{ service.name }}&operation={{ hook.name }}">
+                hook.name
+            </a>
+            {% endfor %}
+            {% for io in service.info_operations %}
+            <div>
+                io.get_info()
+            </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    <div style="width: 30%" class="stats-footer">
+        {{ flask.request.headers }}
+    </div>
+
+</body>
