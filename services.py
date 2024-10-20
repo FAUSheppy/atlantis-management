@@ -11,29 +11,45 @@ class Location:
         self.groups = obj[self.key].get("groups")
         self.method = method
 
-    def query(self):
+    def query(self, json=None):
 
         if self.method == "GET":
             r = requests.post(self.url, auth=(self.user, self.password))
             r.raise_for_status()
             return r.json()
         elif self.method == "POST":
-            r = requests.post(self.url, auth=(self.user, self.password))
+            r = requests.post(self.url, auth=(self.user, self.password), json=json)
             r.raise_for_status()
             return r.json()
         else:
             raise NotImplementedError("Method not supported: {}".format(self.method))
 
 
-
-
 class HookOperation:
 
-    def __init__(obj):
+    def __init__(self, hook_obj):
 
-        self.name =
+        assert(len(obj.keys()) == 1)
+
+        self.name = list(obj.keys())[0]
         self.groups = obj.get(groups)
-        self.locations = [Location(loc_obj) for loc_obj in obj["locations"]]
+
+        if "location" in obj:
+            self.location = Location(obj["location"])
+        else:
+            self.location = None
+
+        self.passive = obj.get("passive")
+
+        # sanity check #
+        assert(self.passive or self.location)
+
+    def query(self):
+
+        if self.location:
+            return self.location.query()
+        else:
+            raise RuntimeError("Invalid operation 'query' for passive Hook")
 
 
 class InfoOperation:
@@ -50,7 +66,8 @@ class InfoOperation:
             "endpoints" : []
             "targets" : [ t.query() for t in self.targets ]
         }
-                                                                                                    
+
+
 class Service:
     '''Class representing the loaded YAML-service'''
     
@@ -60,4 +77,3 @@ class Service:
         self.info_operations = InfoOperations(obj.get("info_operations"))
         self.endpoints = Endpoint(obj.get("register_endpoints"))
         self.name = obj.get("name")
-

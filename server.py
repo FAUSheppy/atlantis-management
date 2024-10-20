@@ -45,24 +45,42 @@ def register_service_location(location, payload, auth):
     pass
     # request service start #
 
-@app.route("/hook-relay")
-def service(path):
+@app.route("/hook-relay", method=["POST"])
+def hook_relay(path):
+    '''Register passive hooks and relay hooks to endpoints without revealing URLs and passwords'''
 
     service = flask.request.args.get("service")
     operation = flask.request.args.get("operation")
     groups = parse_xauth_groups(flask.request.headers.get("X-Forwarded-Groups"))
 
+    # handle active & passive incoming hooks #
     for s in app.config["services"]:
-
         if s.name == service:
-
             for hook in s.hook_operations:
-
                 if hook.name == operation:
 
-                    return hook.location.query()
+                    if hook.passive:
+                        app.config["PASSIVE_HOOKS"].update({ s.name + hook.name : flask.request.json })
+                        return None
+                    else:
+                        return hook.location.query(flask.request.json)
 
     return ("Operation: {} for service {} not found".format(operation, service))
+
+
+@app.route("/hook-passiv")
+def passive_hook_endpoint(path):
+    '''Endpoint which must not be part of OIDC so it can be accessed by checker scripts'''
+
+    # handle incoming checks for passive hooks #
+    hook_fullname = service + operation
+    if hook_fullname in app.config["PASSIVE_HOOKS"]:
+        payload = app.config["PASSIVE_HOOKS"][hook_fullname]
+        del app.config[hook_fullname]
+        return (payload, 200)
+    else:
+        return ("", 204) # hook not there is not the same as 404
+
 
 @app.route("/")
 def dashboard():
@@ -86,7 +104,7 @@ def dashboard():
 
 def create_app():
 
-    app.config["Services"] = _load_services()
+    app.config["services"] = _load_services()
 
 if __name__ == "__main__":
 

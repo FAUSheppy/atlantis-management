@@ -22,15 +22,16 @@ info_operations:
         - admin
         
 hook_operations:
-    locations:
-        - start_service:
+    - start_service:
+        location:
             url: https://webhook.example.com/webhook-start
             user: user_1
             pass: password_1
-        - unlock_service:
-            url: https://webhook.example.com/webhook-unlock
-            user: user_2
-            pass: password_2
+        passive: true
+    - unlock_service:
+        url: https://webhook.example.com/webhook-unlock
+        user: user_2
+        pass: password_2
         groups:
             - operators
     groups:
