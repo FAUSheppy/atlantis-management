@@ -13,9 +13,30 @@
             <hr>
             </div>
             {% for hook in service.hook_operations %}
-            <a href="/hook-relay?service={{ service.name }}&operation={{ hook.name }}">
-                hook.name
-            </a>
+                {% if hook.client %}
+                    <button onclick="query_{{ hook.name }}()">
+                    <script>
+                        async function query_{{ hook.name }}(){
+
+                            {% if hook.multi_url %}
+                            urls = hook.url
+                            {% else %}
+                            urls = [{{ hook.url }}]
+                            {% endif %}
+
+                            urls.forEach( url => {
+                                    let response = await fetch(url)
+                                    let data = await response.json(); 
+                                    console.log(ipv4Data)
+                                }
+                            )
+                        }
+                    </script>
+                {% else %}
+                    <a href="/hook-relay?service={{ service.name }}&operation={{ hook.name }}">
+                        hook.name
+                    </a>
+                {% endif %}
             {% endfor %}
             {% for io in service.info_operations %}
             <div>

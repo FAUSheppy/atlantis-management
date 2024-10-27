@@ -6,7 +6,14 @@ class Location:
 
         self.name = list(obj.keys())[0]
         self.url = obj[self.key]["url"]
+
+        # set multi url indicator #
+        self.multi_url = False
+        if type(self.url) == list:
+            self.multi_url = True
+
         self.user = obj[self.key]["user"]
+        self.args = obj[self.key].get("args")
         self.password = obj[self.key]["pass"] or obj[self.key]["password"]
         self.groups = obj[self.key].get("groups")
         self.method = method
@@ -14,7 +21,7 @@ class Location:
     def query(self, json=None):
 
         if self.method == "GET":
-            r = requests.post(self.url, auth=(self.user, self.password))
+            r = requests.post(self.url, auth=(self.user, self.password), params=self.args)
             r.raise_for_status()
             return r.json()
         elif self.method == "POST":
@@ -27,12 +34,12 @@ class Location:
 
 class HookOperation:
 
-    def __init__(self, hook_obj):
+    def __init__(self, obj):
 
         assert(len(obj.keys()) == 1)
 
         self.name = list(obj.keys())[0]
-        self.groups = obj.get(groups)
+        self.groups = obj.get("groups")
 
         if "location" in obj:
             self.location = Location(obj["location"])
@@ -63,7 +70,7 @@ class InfoOperation:
     def get_info(self):
 
         return {
-            "endpoints" : []
+            "endpoints" : [],
             "targets" : [ t.query() for t in self.targets ]
         }
 
@@ -71,9 +78,11 @@ class InfoOperation:
 class Service:
     '''Class representing the loaded YAML-service'''
     
-    def __init__(obj):
+    def __init__(self, obj):
 
-        self.hook_operations = HookOperation(obj.get("hook_operations"))
+        for hook_op in obj.get("hook_operations"):
+            self.hook_operations = HookOperation(hook_op)
+
         self.info_operations = InfoOperations(obj.get("info_operations"))
         self.endpoints = Endpoint(obj.get("register_endpoints"))
         self.name = obj.get("name")

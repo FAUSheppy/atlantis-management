@@ -12,22 +12,24 @@ import services
 
 SERVICES_DIR = "services"
 
+app = flask.Flask("Atlantis Management")
+
 def _load_services():
     '''Load all service YAML files'''
    
-    services = []
-    for fname in os.path.listdir(SERVICES_DIR):
+    service_list = []
+    for fname in os.listdir(SERVICES_DIR):
 
         with open(os.path.join(SERVICES_DIR, fname)) as f:
 
             try:
-                loaded_yaml = yaml.load(f)
+                loaded_yaml = yaml.safe_load(f)
             except ValueError:
                 raise e # TODO
     
-            services.append(services.Service(loaded_yaml))
+            service_list.append(services.Service(loaded_yaml))
             
-    return services
+    return service_list
             
 
 def webhook(target, payload, auth):
@@ -45,7 +47,7 @@ def register_service_location(location, payload, auth):
     pass
     # request service start #
 
-@app.route("/hook-relay", method=["POST"])
+@app.route("/hook-relay", methods=["POST"])
 def hook_relay(path):
     '''Register passive hooks and relay hooks to endpoints without revealing URLs and passwords'''
 
