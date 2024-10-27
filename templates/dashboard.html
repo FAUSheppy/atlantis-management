@@ -7,47 +7,52 @@
         <a href="/oauth2/sign_out" class="navbar-el">Logout</a>
     </div>
     <div class="main-container">
-        {% for service in services %}
+        {% for service_name, service in services.items() %}
             <div class="seperator">
             <h3 style="margin-left: 15px;">{{ services.name }}</h3>
             <hr>
             </div>
             {% for hook in service.hook_operations %}
                 {% if hook.client %}
-                    <button onclick="query_{{ hook.name }}()">
+                    <button onclick="query_{{ hook.name }}()">{{ hook.name }}</button>
                     <script>
                         async function query_{{ hook.name }}(){
 
-                            {% if hook.multi_url %}
-                            urls = hook.url
+                            {% if hook.location.multi_url %}
+                            urls = [ {% for h_url in hook.location.url %}
+                                        "{{ h_url | safe }}" + "?" + new URLSearchParams({{ hook.location.args | safe }}),
+                                     {% endfor %}
+                            ]
                             {% else %}
-                            urls = [{{ hook.url }}]
+                            urls = ["{{ hook.location.url | safe }}" + "?" + new URLSearchParams({{ hook.location.args | safe }})]
                             {% endif %}
 
-                            urls.forEach( url => {
+                            urls.forEach( async (url) => {
                                     let response = await fetch(url)
-                                    let data = await response.json(); 
-                                    console.log(ipv4Data)
                                 }
                             )
                         }
                     </script>
                 {% else %}
-                    <a href="/hook-relay?service={{ service.name }}&operation={{ hook.name }}">
-                        hook.name
-                    </a>
+                    <button onclick="query_{{ hook.name }}()">{{ hook.name }}</button>
+                    <script>
+                        async function query_{{ hook.name }}(){
+                            let url = "/hook-relay?service={{ service.clean_name() }}&operation={{ hook.name }}"
+                            let response = await fetch(url, { 
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({}),
+                            })
+                            // let data = await response.json();
+                        }
+                    </script>
                 {% endif %}
             {% endfor %}
-            {% for io in service.info_operations %}
             <div>
-                io.get_info()
+                {{ service.info_operations.get_info() | safe }}
             </div>
-            {% endfor %}
         {% endfor %}
     </div>
-
-    <div style="width: 30%" class="stats-footer">
-        {{ flask.request.headers }}
-    </div>
-
 </body>

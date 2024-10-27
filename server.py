@@ -14,10 +14,15 @@ SERVICES_DIR = "services"
 
 app = flask.Flask("Atlantis Management")
 
+def parse_xauth_groups():
+    '''Parse X-Auth Headers'''
+    groups = flask.request.headers.get("X-Forwarded-Groups") or []
+    return groups
+
 def _load_services():
     '''Load all service YAML files'''
    
-    service_list = []
+    services_dict = {}
     for fname in os.listdir(SERVICES_DIR):
 
         with open(os.path.join(SERVICES_DIR, fname)) as f:
@@ -27,9 +32,24 @@ def _load_services():
             except ValueError:
                 raise e # TODO
     
-            service_list.append(services.Service(loaded_yaml))
+            try:
+
+                s = services.Service(loaded_yaml)
+                s_key = s.clean_name()
+
+                # check valid key #
+                if not s_key:
+                    raise services.ServiceLoadError(f"Name: {s.name} is not valid ({fname})")
+                elif s_key in services_dict:
+                    raise services.ServiceLoadError(f"{s_key} already exists ({fname})")
+
+                services_dict.update({ s_key: s })
+
+            except services.ServiceLoadError as e:
+                print(e)
+                sys.exit(1)
             
-    return service_list
+    return services_dict
             
 
 def webhook(target, payload, auth):
@@ -48,47 +68,52 @@ def register_service_location(location, payload, auth):
     # request service start #
 
 @app.route("/hook-relay", methods=["POST"])
-def hook_relay(path):
+def hook_relay():
     '''Register passive hooks and relay hooks to endpoints without revealing URLs and passwords'''
 
     service = flask.request.args.get("service")
     operation = flask.request.args.get("operation")
-    groups = parse_xauth_groups(flask.request.headers.get("X-Forwarded-Groups"))
+    groups = parse_xauth_groups()
+
+    print([str(x) for x in app.config["services"]])
 
     # handle active & passive incoming hooks #
-    for s in app.config["services"]:
-        if s.name == service:
-            for hook in s.hook_operations:
-                if hook.name == operation:
+    if services.Service.clean_name(service) in app.config["services"]:
+        s = app.config["services"][services.Service.clean_name(service)]
+        for hook in s.hook_operations:
+            if hook.name == operation:
+                if hook.passive:
+                    app.config["PASSIVE_HOOKS"].update({ s.clean_name() + hook.name : flask.request.json })
+                    return ("", 204)
+                else:
+                    return hook.location.query(flask.request.json)
 
-                    if hook.passive:
-                        app.config["PASSIVE_HOOKS"].update({ s.name + hook.name : flask.request.json })
-                        return None
-                    else:
-                        return hook.location.query(flask.request.json)
-
-    return ("Operation: {} for service {} not found".format(operation, service))
+    return ("Operation: {} for service {} not found".format(operation, service), 404)
 
 
-@app.route("/hook-passiv")
-def passive_hook_endpoint(path):
+@app.route("/hook-passive")
+def passive_hook_endpoint():
     '''Endpoint which must not be part of OIDC so it can be accessed by checker scripts'''
+
+    operation = flask.request.args.get("operation")
+    service = flask.request.args.get("service")
 
     # handle incoming checks for passive hooks #
     hook_fullname = service + operation
+    print(app.config["PASSIVE_HOOKS"])
     if hook_fullname in app.config["PASSIVE_HOOKS"]:
         payload = app.config["PASSIVE_HOOKS"][hook_fullname]
-        del app.config[hook_fullname]
+        app.config["PASSIVE_HOOKS"][hook_fullname] = {}
         return (payload, 200)
     else:
-        return ("", 204) # hook not there is not the same as 404
+        return ("", 404) # hook not there is not the same as 404
 
 
 @app.route("/")
 def dashboard():
 
     user = flask.request.headers.get("X-Forwarded-Preferred-Username")
-    groups = parse_xauth_groups(flask.request.headers.get("X-Forwarded-Groups"))
+    groups = parse_xauth_groups()
     ip = flask.request.headers.get("X-Forwarded-For")
 
 
@@ -99,14 +124,15 @@ def dashboard():
         # TODO request service status #
         # TODO offer service start    #
         # TODO offer ip unlock        #
+        print(s)
         pass
 
-    return flask.render_template("dashboard.html", tiles=tiles, categories=categories,
-                user=user, groups=groups, flask=flask)
+    return flask.render_template("dashboard.html", services=app.config["services"])
 
 def create_app():
 
     app.config["services"] = _load_services()
+    app.config["PASSIVE_HOOKS"] = dict()
 
 if __name__ == "__main__":
 
