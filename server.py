@@ -83,7 +83,11 @@ def hook_relay():
         for hook in s.hook_operations:
             if hook.name == operation:
                 if hook.passive:
-                    app.config["PASSIVE_HOOKS"].update({ s.clean_name() + hook.name : flask.request.json })
+                    payload = flask.request.json
+                    print(payload, bool(payload))
+                    if not payload:
+                        payload = { "auto": True }
+                    app.config["PASSIVE_HOOKS"].update({ s.clean_name() + hook.name : payload })
                     return ("", 204)
                 else:
                     return hook.location.query(flask.request.json)
@@ -98,6 +102,9 @@ def passive_hook_endpoint():
     operation = flask.request.args.get("operation")
     service = flask.request.args.get("service")
 
+    if not all([operation, service]):
+        return ("Missing Operation or service argument", 400)
+
     # handle incoming checks for passive hooks #
     hook_fullname = service + operation
     print(app.config["PASSIVE_HOOKS"])
@@ -106,8 +113,7 @@ def passive_hook_endpoint():
         app.config["PASSIVE_HOOKS"][hook_fullname] = {}
         return (payload, 200)
     else:
-        return ("", 404) # hook not there is not the same as 404
-
+        return (f"No Hook for Service '{service}' and operation '{operation}'", 404)
 
 @app.route("/")
 def dashboard():
