@@ -10,8 +10,6 @@ RUN python3 -m pip install --no-cache-dir --break-system-packages waitress
 COPY req.txt .
 RUN python3 -m pip install --no-cache-dir --break-system-packages -r req.txt
 
-RUN ln -s /app/uploads/ /app/static/uploads
-
 EXPOSE 5000/tcp
 
 ENTRYPOINT ["waitress-serve"] 
