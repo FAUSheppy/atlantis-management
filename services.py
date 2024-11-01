@@ -94,20 +94,35 @@ class InfoOperations:
             "targets" : [], # TODO [ t.query() for t in self.targets ]
         }
 
+class Endpoint:
+
+    def __init__(self, obj, parent):
+
+        self.name = list(obj.keys())[0]
+        self.token = obj.get("token")
+        self.parent = parent
+
+    def __eq__(self, other):
+
+        if type(other) == str:
+            return self.name == other
+        else:
+            return self.name == other.name and self.parent.name == other.parent.name
+
 
 class Service:
     '''Class representing the loaded YAML-service'''
     
     def __init__(self, obj):
 
-        self.info_operations = InfoOperations(obj.get("info_operations"))
-        #self.endpoints = Endpoint(obj.get("register_endpoints"))
         self.name = obj.get("name")
+        self.info_operations = InfoOperations(obj.get("info_operations"))
+        self.endpoints_list = [Endpoint(e, self) for e in obj.get("register_endpoints")]
+        self.endpoints = { e.name : e for e in self.endpoints_list }
 
         self.hook_operations = []
         for hook_op in obj.get("hook_operations"):
             self.hook_operations.append(HookOperation(hook_op, self))
-        print("Hook Operations:", [str(h) for h in self.hook_operations])
 
     def clean_name(self):
         

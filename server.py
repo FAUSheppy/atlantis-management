@@ -95,6 +95,36 @@ def hook_relay():
     return ("Operation: {} for service {} not found".format(operation, service), 404)
 
 
+@app.route("/endpoints", methods=["GET", "POST"])
+def info_status_endpoint():
+
+    service = flask.request.args.get("service")
+    endpoint = flask.request.args.get("endpoint")
+    token = flask.request.args.get("token")
+
+    if not all([endpoint, service, token]):
+        return ("Missing endpoint, service or token argument", 400)
+
+    serivce_obj = app.config["services"].get(services.Service.clean_name(service))
+    if serivce_obj:
+        endpoint_obj = serivce_obj.endpoints.get(endpoint)
+        if endpoint_obj:
+            if not endpoint_obj.token or (token and endpoint_obj.token == token):
+                if flask.request.method == "GET":
+                    return endpoint_obj.payload
+                elif flask.request.method == "POST":
+                    endpoint_obj.payload = flask.request.json                
+                    return ("Endpoint Updatet", 200)
+                else:
+                    return ("Unsupported method", 405)
+            else:
+                return (f"Service {service} and {endpoint} found, but token invalid or missing", 405)
+        else:
+            return (f"Service {service} found, but not endpoint {endpoint}", 405)  
+    else:
+        return (f"Service {service} not found", 405)
+
+
 @app.route("/hook-passive")
 def passive_hook_endpoint():
     '''Endpoint which must not be part of OIDC so it can be accessed by checker scripts'''
@@ -103,7 +133,7 @@ def passive_hook_endpoint():
     service = flask.request.args.get("service")
 
     if not all([operation, service]):
-        return ("Missing Operation or service argument", 400)
+        return ("Missing operation or service argument", 400)
 
     # handle incoming checks for passive hooks #
     hook_fullname = service + operation
