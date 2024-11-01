@@ -2,9 +2,13 @@ import requests
 import sys
 import os
 import datetime
+import argparse
+import subprocess
 
 # seperator for title & message in action-/status-script output #
 SCRIPT_SEPERATOR = "$$"
+QUERY_PATH_SERVER = "/hook-passive"
+ENDPOINTS_PATH_SERVER = "/endpoints"
 
 class Status:
 
@@ -27,52 +31,78 @@ class Status:
     def _get_params(self):
         '''Get URL Parameters for Server requests'''
 
-        return { "service": self.service, "operation": self.operation, token=self.token }
+        return { "service": self.service, "operation": self.operation, "token": self.token, "endpoint": self.operation }
 
     def _send_status(self, title, message):
         '''Send a status to the server'''
 
         payload = {"title": title, "message": message}
-        r = requests.post(self.server, json=payload, params=self._get_params())
+        r = requests.post(self.server + ENDPOINTS_PATH_SERVER, json=payload, params=self._get_params())
         r.raise_for_status()
         self.last_status = title + message
         self.timstamp_last_status = datetime.datetime.now()
+        print(f"Sent status: {payload}")
 
     def check_status(self):
         '''Check current status and send it to server'''
 
-        p = subprocess.Popen([self.action_script, self.last_status, self.timestamp_last_status.isoformat()], universal_newlines=True)
+        # prepare command #
+        cmd = [self.status_script, self.last_status, self.timestamp_last_status.isoformat()]
+        if args.action_script.endswith(".py"):
+            cmd = ["python"] + cmd
 
-        if p.status_code != 0:
+        # execute command #
+        p = subprocess.run(cmd, capture_output=True, universal_newlines=True)
+
+        if p.returncode != 0:
             self._send_status("Status script has failed", p.stderr)
         else:
             title, message = p.stdout.split(SCRIPT_SEPERATOR)
             self._send_status(title, message)
 
-    def poll_passive_endpoint(self)
+    def poll_passive_endpoint(self):
         '''Poll a passive endpoint for status'''
 
-        r = requests.get(server, params=self._get_params())
-        r.raise_for_status()
-        result = r.json
+        r = requests.get(self.server +QUERY_PATH_SERVER, params=self._get_params())
 
-        if "auto" in result and result["auto"]:
-            
-            delta = datetime.datetime.now() - self.timestamp_last_action
-            if delta < self.min_delta_to_last_action:
+        try:
+            r.raise_for_status()
+            result = r.json()
 
-                p = subproccess.Popen(args)
-                if p.status_code != 0:
-                    self._send_status("Action script has failed", p.stderr)
+            if "auto" in result and result["auto"]:
+
+                delta = datetime.datetime.now() - self.timestamp_last_action
+                print(delta, self.min_delta_to_last_action)
+                if delta >= self.min_delta_to_last_action:
+
+                    # prepare command #
+                    cmd = [args.action_script, self.last_status, self.timestamp_last_status.isoformat()]
+                    if args.action_script.endswith(".py"):
+                        cmd = ["python"] + cmd
+
+                    # execute command #
+                    p = subprocess.run(cmd, capture_output=True, universal_newlines=True)
+                    if p.returncode != 0:
+                        self._send_status("Action script has failed", p.stderr)
+                    else:
+                        title, message = p.stdout.split(SCRIPT_SEPERATOR)
+                        self._send_status(title, message)
+
                 else:
-                    title, message = p.stdout.split(SCRIPT_SEPERATOR)
-                    self._send_status(title, message)
 
+                    title = "Action refused (repeated to fast)"
+                    msg = "Wait for {} minutes".format(int(delta.total_seconds()/60))
+                    self._send_status(title, msg)
+            
             else:
+                self.check_status()
 
-                title = "Action refused (repeated to fast)"
-                msg = "Wait for {} minutes".format(int(delta.total_seconds/60))
-                self._send_status(title, msg)
+        except requests.exceptions.HTTPError as e:
+            if r.status_code == 404:
+                self.check_status()
+                return
+            else:
+                print(e)
 
 
 if __name__ == "__main__":
@@ -89,3 +119,6 @@ if __name__ == "__main__":
     parser.add_argument("--action-script", required=True, help="Script to call as a action if passive webhook was triggered")
     
     args = parser.parse_args()
+    status = Status(args.server, args.service, args.operation, args.action_script, 
+                    args.status_endpoint, args.status_script, args.token)
+    status.poll_passive_endpoint()
