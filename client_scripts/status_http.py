@@ -6,28 +6,25 @@ import wakeonlan
 import sys
 import socket
 import struct
+import requests
 import time
 
-def is_reachable(host):
+def is_icmp_reachable(host):
     '''Check if host reachable (ICMP)'''
 
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
-        sock.settimeout(1)
-        packet_id = int((id(host) * time.time()) % 65535)
-        packet = struct.pack("bbHHh", 8, 0, 0, packet_id, 1)
-        sock.sendto(packet, (host, 1))
-        sock.recvfrom(1024)
-        return True
-    except Exception:
-        return False
+    param = '-n' if os.sys.platform.lower()=='win32' else '-c'
+    hostname = host
+    response = subprocess.run(f"ping {param} 1 {hostname}", capture_output=True)
 
-def is_reachable(url):
+    return True if response.returncode == 0 else False
+
+def is_up(url):
     '''Check if webservice is reachable'''
 
     try:
-        r = requests.get(url, timeout=5, retries=2)
+        r = requests.get(url, timeout=5)
         r.raise_for_status()
+        return True
     except requests.exceptions.HTTPError:
         return False
     except requests.exceptions.ConnectionError:
@@ -38,8 +35,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Atlantis Status Management - Wake on Lan-Action',
                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument("LAST_STATUS", required=True, help="Last Status Submitted")
-    parser.add_argument("LAST_STATUS_ISO_TIMESTAMP", required=True, help="ISO-Timestamp of last submitted status")
+    parser.add_argument("LAST_STATUS", help="Last Status Submitted")
+    parser.add_argument("LAST_STATUS_ISO_TIMESTAMP", help="ISO-Timestamp of last submitted status")
 
     args = parser.parse_args()
 
@@ -63,8 +60,8 @@ if __name__ == "__main__":
     # get parameter #
     target = config.get("target")
     target_webservice = config.get("target_webservice")
-    if not target or not target_webserivce:
-        print(f"Missing required filed 'target' or 'target_webserivce' in '{config_file}'", file=sys.stderr)
+    if not target or not target_webservice:
+        print(f"Missing required filed 'target' or 'target_webservice' in '{config_file}'", file=sys.stderr)
         sys.exit(1)
 
     # delay status when neccesary #
@@ -72,16 +69,16 @@ if __name__ == "__main__":
     delay_for = config.get("delay_for") or 15
     if delay_on:
         if any([ x in args.LAST_STATUS for x in delay_on]):
-            sleep(delay_for)
+            time.sleep(delay_for)
 
     # execute action #
     # options:
     #   ping -> server unreachable
     #   http -> server reachable but webservice unavailable
     #   both works -> server reachable/ok
-    if not is_reachable(target):
+    if not is_icmp_reachable(target):
         print("Server Unreachable$$Ping Failed")
-    elif not is_up(target_webservice)
+    elif not is_up(target_webservice):
         print("Webservice Down$$Server is up but webservice is not")
     else:
         print("Up$$Started successfully")

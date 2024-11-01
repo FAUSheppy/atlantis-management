@@ -10,8 +10,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Atlantis Status Management - Wake on Lan-Action',
                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument("LAST_STATUS", required=True, help="Last Status Submitted")
-    parser.add_argument("LAST_STATUS_ISO_TIMESTAMP", required=True, help="ISO-Timestamp of last submitted status")
+    parser.add_argument("LAST_STATUS", help="Last Status Submitted")
+    parser.add_argument("LAST_STATUS_ISO_TIMESTAMP", help="ISO-Timestamp of last submitted status")
 
     # determine config file #
     config_file = os.path.basename(__file__) + ".yaml"
