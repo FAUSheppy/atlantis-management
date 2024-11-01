@@ -34,20 +34,34 @@
                         }
                     </script>
                 {% else %}
-                    <button onclick="query_{{ hook.name }}()">{{ hook.name }}</button>
-                    <script>
-                        async function query_{{ hook.name }}(){
-                            let url = "/hook-relay?service={{ service.clean_name() }}&operation={{ hook.name }}"
-                            let response = await fetch(url, { 
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({}),
-                            })
-                            // let data = await response.json();
-                        }
-                    </script>
+                    <div class="m-3 action-container">
+                        <button onclick="query_{{ hook.name }}()">{{ hook.name }}</button>
+                        <div id="status-target-{{ hook.name }}">
+
+                        </div>
+                        <script>
+                            async function query_{{ hook.name }}(){
+                                let url = "/hook-relay?service={{ service.clean_name() }}&operation={{ hook.name }}"
+                                let response = await fetch(url, { 
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify({}),
+                                })
+                                // let data = await response.json();
+                                status_update_{{ hook.name }}()
+                            }
+                            async function status_update_{{ hook.name }}(){
+                                let url = "/endpoints?service={{ service.clean_name() }}&endpoint={{ hook.name }}"
+                                let response = await fetch(url)
+                                let data = await response.json();
+                                let target = document.getElementById("status-target-{{ hook.name }}")
+                                target.innerHTML = data.title + " " + data.message
+                            }
+                            setTimeout(status_update_{{ hook.name }}, 1000)
+                        </script>
+                    </div>
                 {% endif %}
             {% endfor %}
             <div>

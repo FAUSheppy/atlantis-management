@@ -102,7 +102,8 @@ def info_status_endpoint():
     endpoint = flask.request.args.get("endpoint")
     token = flask.request.args.get("token")
 
-    if not all([endpoint, service, token]):
+    print([endpoint, service, (token or flask.request.method=="GET")])
+    if not all([endpoint, service, (token or flask.request.method=="GET")]):
         return ("Missing endpoint, service or token argument", 400)
 
     serivce_obj = app.config["services"].get(services.Service.clean_name(service))

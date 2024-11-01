@@ -84,14 +84,12 @@ class InfoOperations:
     def __init__(self, obj):
 
         self.groups = obj.get("groups")
-        self.endpoints = [InfoEndpoint(e) for e in obj.get("endpoints") or []]
         self.targets = [Location(i) for i in obj.get("targets").items() or []]
 
     def get_info(self):
 
         return {
-            "endpoints" : [],
-            "targets" : [], # TODO [ t.query() for t in self.targets ]
+            "targets" : [ t.query() for t in self.targets ]
         }
 
 class Endpoint:
@@ -101,6 +99,7 @@ class Endpoint:
         self.name = list(obj.keys())[0]
         self.token = obj.get("token")
         self.parent = parent
+        self.payload = {}
 
     def __eq__(self, other):
 
