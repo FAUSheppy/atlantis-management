@@ -2,3 +2,4 @@ lxml
 flask
 requests
 PyYAML
+wakeonlan
