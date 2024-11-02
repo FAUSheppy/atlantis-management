@@ -18,7 +18,6 @@ def _get_services_for_groups():
     '''Return only services given groups have access to'''
 
     groups = parse_xauth_groups()
-    print(groups)
     selection_lambda = lambda x: not x.groups or any([g in x.groups for g in groups])
     f = filter(selection_lambda, app.config["services"].values())
 
@@ -99,7 +98,6 @@ def hook_relay():
             if hook.name == operation:
                 if hook.passive:
                     payload = flask.request.json
-                    print(payload, bool(payload))
                     if not payload:
                         payload = { "auto": True }
                     app.config["PASSIVE_HOOKS"].update({ s.clean_name() + hook.name : payload })
@@ -117,7 +115,6 @@ def info_status_endpoint():
     endpoint = flask.request.args.get("endpoint")
     token = flask.request.args.get("token")
 
-    print([endpoint, service, (token or flask.request.method=="GET")])
     if not all([endpoint, service, (token or flask.request.method=="GET")]):
         return ("Missing endpoint, service or token argument", 400)
 
@@ -153,7 +150,6 @@ def passive_hook_endpoint():
 
     # handle incoming checks for passive hooks #
     hook_fullname = service + operation
-    print(app.config["PASSIVE_HOOKS"])
     if hook_fullname in app.config["PASSIVE_HOOKS"]:
         payload = app.config["PASSIVE_HOOKS"][hook_fullname]
         app.config["PASSIVE_HOOKS"][hook_fullname] = {}
