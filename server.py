@@ -153,17 +153,6 @@ def dashboard():
     groups = parse_xauth_groups()
     ip = flask.request.headers.get("X-Forwarded-For")
 
-
-    # TODO request status from services
-    for s in app.config["services"]:
-
-        # TODO request ip status      #
-        # TODO request service status #
-        # TODO offer service start    #
-        # TODO offer ip unlock        #
-        print(s)
-        pass
-
     return flask.render_template("dashboard.html", services=app.config["services"])
 
 def create_app():
