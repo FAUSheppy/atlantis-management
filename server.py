@@ -11,6 +11,7 @@ import yaml
 import services
 
 SERVICES_DIR = "services"
+GROUPS_SEPERATOR = ","
 
 app = flask.Flask("Atlantis Management")
 
@@ -34,7 +35,7 @@ def parse_xauth_groups():
     if not groups:
         return []
     else:
-        return groups.split()
+        return groups.split(GROUPS_SEPERATOR)
 
 def _load_services():
     '''Load all service YAML files'''
