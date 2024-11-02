@@ -1,6 +1,7 @@
 body{
     background: #47918a;
     background: radial-gradient(ellipse at center, #47918a 0%, #0b3161 100%);
+    height: 100%;
 }
 
 .action-title{
