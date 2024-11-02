@@ -29,7 +29,7 @@ def _load_services():
 
             try:
                 loaded_yaml = yaml.safe_load(f)
-            except ValueError:
+            except ValueError as e:
                 raise e # TODO
     
             try:
