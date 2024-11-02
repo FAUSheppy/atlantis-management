@@ -20,11 +20,11 @@
 
                             {% if hook.location.multi_url %}
                             urls = [ {% for h_url in hook.location.url %}
-                                        "{{ h_url | safe }}" + "?" + new URLSearchParams({{ hook.location.args | safe }}),
+                                        "{{ h_url | safe }}" + "?" + new URLSearchParams({{ hook.location.args_f() | safe }}),
                                      {% endfor %}
                             ]
                             {% else %}
-                            urls = ["{{ hook.location.url | safe }}" + "?" + new URLSearchParams({{ hook.location.args | safe }})]
+                            urls = ["{{ hook.location.url | safe }}" + "?" + new URLSearchParams({{ hook.location.args_f() | safe }})]
                             {% endif %}
 
                             urls.forEach( async (url) => {
@@ -65,7 +65,6 @@
                 {% endif %}
             {% endfor %}
             <div>
-                {{ service.info_operations.get_info() | safe }}
             </div>
         {% endfor %}
     </div>

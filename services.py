@@ -16,9 +16,23 @@ class Location:
 
         self.user = target.get("user")
         self.args = target.get("args")
+        self.client_secret = target.get("client_secret")
+        self.client_secret_field = target.get("client_secret_field") or "secret"
         self.password = target.get("pass") or target.get("password")
         self.groups = target.get("groups")
         self.method = method
+
+    def args_f(self):
+
+        if not self.client_secret:
+            return self.args
+        else:
+            r = requests.get(self.client_secret, auth=(self.user, self.password), params=self.args)
+            r.raise_for_status()
+            copy = dict(self.args)
+            copy[self.client_secret_field] = r.content.decode("utf-8")
+            return copy
+
 
     def query(self, json=None):
 
@@ -115,7 +129,6 @@ class Service:
     def __init__(self, obj):
 
         self.name = obj.get("name")
-        self.info_operations = InfoOperations(obj.get("info_operations"))
         self.endpoints_list = [Endpoint(e, self) for e in obj.get("register_endpoints")]
         self.endpoints = { e.name : e for e in self.endpoints_list }
 
