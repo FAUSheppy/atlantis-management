@@ -12,9 +12,18 @@ import time
 def is_icmp_reachable(host):
     '''Check if host reachable (ICMP)'''
 
-    param = '-n' if os.sys.platform.lower()=='win32' else '-c'
+    if " " in host:
+        raise AssertionError("hostname must not contain spaces")
+
+    if os.sys.platform.lower()=='win32':
+        param = '-n'
+        cmd = f"ping {param} 1 {host}"
+    else:
+        param = '-c'
+        cmd = f"ping {param} 1 {host}".split()
+
     hostname = host
-    response = subprocess.run(f"ping {param} 1 {hostname}", capture_output=True)
+    response = subprocess.run(cmd, capture_output=True)
 
     return True if response.returncode == 0 else False
 
