@@ -1,6 +1,4 @@
-<head>
-    {% include "head.html" %}
-</head>
+{% include "head.html" %}
 <body>
     <div class="navbar">
         <div style="float: left;" class="navbar-el">{{ user or  "" }}</div>
@@ -10,22 +8,21 @@
         {% for service_name, service in services.items() %}
             <h3 class="action-title mt-4">{{ service_name }}</h3>
             <div class="seperator">
-            <h3 style="margin-left: 15px;">{{ services.name }}</h3>
             <hr>
             </div>
             {% for hook in service.hook_operations %}
                 {% if hook.client %}
                     <div class="m-3 action-container">
                         <div class="row">
-                            <button onclick="query_{{ service_name }}_{{ hook.name }}()" class="btn btn-primary col-4">
-					        	{{ hook.name }}
+                            <button onclick="query_{{ service.clean_name() }}_{{ hook.name }}()" class="btn btn-primary col-4">
+					        	{{ hook.name.replace("_", " ") }}
 					        </button>
                             <div id="status-target-{{ hook.name }}" class="pt-2 col-6 status-target">
 
                             </div>
                         </div>
                         <script>
-                            async function query_{{ service_name }}_{{ hook.name }}(){
+                            async function query_{{ service.clean_name() }}_{{ hook.name }}(){
 
                                 {% if hook.location.multi_url %}
                                 urls = [ {% for h_url in hook.location.url %}
@@ -44,29 +41,30 @@
                                 event.srcElement.disabled = true
                             }
                             {% if hook.status_url %}
-                            async function status_update_{{ service_name }}_{{ hook.name }}(){
+                            async function status_update_{{ service.clean_name() }}_{{ hook.name }}(){
                                 let url = "{{ hook.status_url }}"
                                 let response = await fetch(url)
                                 let text = await response.text()
                                 let target = document.getElementById("status-target-{{ hook.name }}")
                                 target.innerHTML = text
                             }
-                            setInterval(status_update_{{ service_name }}_{{ hook.name }}, 1000)
+                            status_update_{{ service.clean_name() }}_{{ hook.name }}()
+                            setInterval(status_update_{{ service.clean_name() }}_{{ hook.name }}, 5000)
                             {% endif %}
                         </script>
                     </div>
                 {% else %}
                     <div class="m-3 action-container">
                         <div class="row">
-                            <button onclick="query_{{ service_name }}_{{ hook.name }}()" class="btn btn-primary col-4">
-						    	{{ hook.name }}
+                            <button onclick="query_{{ service.clean_name() }}_{{ hook.name }}()" class="btn btn-primary col-4">
+						    	{{ hook.name.replace("_", " ") }}
 						    </button>
                             <div id="status-target-{{ hook.name }}" class="pt-2 col-6 status-target">
                         </div>
 
                         </div>
                         <script>
-                            async function query_{{ service_name }}_{{ hook.name }}(){
+                            async function query_{{ service.clean_name() }}_{{ hook.name }}(){
                                 let url = "/hook-relay?service={{ service.clean_name() }}&operation={{ hook.name }}"
                                 let response = await fetch(url, { 
                                     method: "POST",
@@ -90,7 +88,8 @@
                                     target.innerHTML = data.title + " " + data.message
                                 }
                             }
-                            setInterval(status_update_{{ service_name }}_{{ hook.name }}, 1000)
+                            status_update_{{ service_name }}_{{ hook.name }}()
+                            setInterval(status_update_{{ service_name }}_{{ hook.name }}, 5000)
                         </script>
                     </div>
                 {% endif %}
