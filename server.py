@@ -22,6 +22,10 @@ def _get_services_for_groups():
     selection_lambda = lambda x: not x.groups or any([g in x.groups for g in groups])
     f = filter(selection_lambda, app.config["services"].values())
 
+    # skip for check if disabled #
+    if app.config["DISABLE_GROUP_CHECK"]:
+        return app.config["services"]
+
     return { service.name : service for service in f }
 
 
@@ -169,6 +173,7 @@ def create_app():
 
     app.config["services"] = _load_services()
     app.config["PASSIVE_HOOKS"] = dict()
+    app.config["DISABLE_GROUP_CHECK"] = int(os.environ.get("DISABLE_GROUP_CHECK") or 0) == 1
 
 if __name__ == "__main__":
 
