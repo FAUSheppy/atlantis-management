@@ -3,11 +3,24 @@ body{
     background: radial-gradient(ellipse at center, #47918a 0%, #0b3161 100%);
 }
 
+.action-title{
+    margin-left: auto;
+    margin-right: auto;
+    width: fit-content;
+}
+
+.action-container{
+    
+}
+
+.status-target{
+    min-width: 200px;
+}
+
 .seperator{
     display: inline-block;
     float: left;
     width: 100%;
-    margin-top: 30px;
 }
 
 .sperator.hr{
@@ -56,7 +69,6 @@ body{
     max-width: 1400px;
     width: fit-content;
     margin: auto;
-    padding-right: 50px;
     background: #bde0ff57;
     border-radius: 5px;
     border-color: black;
