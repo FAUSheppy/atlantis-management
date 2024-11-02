@@ -14,6 +14,9 @@
             </div>
             {% for hook in service.hook_operations %}
                 {% if hook.client %}
+                    <div id="status-target-{{ hook.name }}">
+
+                    </div>
                     <button onclick="query_{{ hook.name }}()">{{ hook.name }}</button>
                     <script>
                         async function query_{{ hook.name }}(){
@@ -32,6 +35,17 @@
                                 }
                             )
                         }
+                        {% if hook.status_url %}
+                        async function status_update_{{ hook.name }}(){
+                            let url = "{{ hook.status_url }}"
+                            let response = await fetch(url)
+                            let text = await response.text()
+                            let target = document.getElementById("status-target-{{ hook.name }}")
+                            target.innerHTML = text
+
+                        }
+                        setInterval(status_update_{{ hook.name }}, 1000)
+                        {% endif %}
                     </script>
                 {% else %}
                     <div class="m-3 action-container">
@@ -57,9 +71,13 @@
                                 let response = await fetch(url)
                                 let data = await response.json();
                                 let target = document.getElementById("status-target-{{ hook.name }}")
-                                target.innerHTML = data.title + " " + data.message
+                                if(!data.title){
+                                    target.innerHTML = "No status info available"
+                                }else{
+                                    target.innerHTML = data.title + " " + data.message
+                                }
                             }
-                            setTimeout(status_update_{{ hook.name }}, 1000)
+                            setInterval(status_update_{{ hook.name }}, 1000)
                         </script>
                     </div>
                 {% endif %}

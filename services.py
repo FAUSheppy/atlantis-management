@@ -67,6 +67,7 @@ class HookOperation:
 
         self.name = list(obj.keys())[0]
         self.groups = obj[self.name].get("groups")
+        self.status_url = obj[self.name].get("status_url")
 
         self.location_unparsed = obj[self.name].get("location")
         if self.location_unparsed:
