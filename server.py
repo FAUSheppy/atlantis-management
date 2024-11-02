@@ -14,10 +14,24 @@ SERVICES_DIR = "services"
 
 app = flask.Flask("Atlantis Management")
 
+def _get_services_for_groups():
+    '''Return only services given groups have access to'''
+
+    groups = parse_xauth_groups()
+    print(groups)
+    selection_lambda = lambda x: not x.groups or any([g in x.groups for g in groups])
+    f = filter(selection_lambda, app.config["services"].values())
+
+    return { service.name : service for service in f }
+
+
 def parse_xauth_groups():
     '''Parse X-Auth Headers'''
-    groups = flask.request.headers.get("X-Forwarded-Groups") or []
-    return groups
+    groups = flask.request.headers.get("X-Forwarded-Groups")
+    if not groups:
+        return []
+    else:
+        return groups.split()
 
 def _load_services():
     '''Load all service YAML files'''
@@ -73,13 +87,10 @@ def hook_relay():
 
     service = flask.request.args.get("service")
     operation = flask.request.args.get("operation")
-    groups = parse_xauth_groups()
-
-    print([str(x) for x in app.config["services"]])
 
     # handle active & passive incoming hooks #
-    if services.Service.clean_name(service) in app.config["services"]:
-        s = app.config["services"][services.Service.clean_name(service)]
+    if services.Service.clean_name(service) in _get_services_for_groups():
+        s = _get_services_for_groups()[services.Service.clean_name(service)]
         for hook in s.hook_operations:
             if hook.name == operation:
                 if hook.passive:
@@ -150,10 +161,9 @@ def passive_hook_endpoint():
 def dashboard():
 
     user = flask.request.headers.get("X-Forwarded-Preferred-Username")
-    groups = parse_xauth_groups()
     ip = flask.request.headers.get("X-Forwarded-For")
 
-    return flask.render_template("dashboard.html", services=app.config["services"])
+    return flask.render_template("dashboard.html", services=_get_services_for_groups())
 
 def create_app():
 

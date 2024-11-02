@@ -19,7 +19,6 @@ class Location:
         self.client_secret = target.get("client_secret")
         self.client_secret_field = target.get("client_secret_field") or "secret"
         self.password = target.get("pass") or target.get("password")
-        self.groups = target.get("groups")
         self.method = method
 
     def args_f(self):
@@ -66,7 +65,6 @@ class HookOperation:
     def __init__(self, obj, parent):
 
         self.name = list(obj.keys())[0]
-        self.groups = obj[self.name].get("groups")
         self.status_url = obj[self.name].get("status_url")
 
         self.location_unparsed = obj[self.name].get("location")
@@ -98,7 +96,6 @@ class InfoOperations:
 
     def __init__(self, obj):
 
-        self.groups = obj.get("groups")
         self.targets = [Location(i) for i in obj.get("targets").items() or []]
 
     def get_info(self):
@@ -132,6 +129,7 @@ class Service:
         self.name = obj.get("name")
         self.endpoints_list = [Endpoint(e, self) for e in obj.get("register_endpoints")]
         self.endpoints = { e.name : e for e in self.endpoints_list }
+        self.groups = obj.get("groups")
 
         self.hook_operations = []
         for hook_op in obj.get("hook_operations"):
