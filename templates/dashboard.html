@@ -74,7 +74,7 @@
                                     body: JSON.stringify({}),
                                 })
                                 // let data = await response.json();
-                                status_update_{{ hook.name }}()
+                                status_update_{{ service.clean_name() }}_{{ hook.name }}()
                                 event.srcElement.disabled = true
                             }
                             async function status_update_{{ service.clean_name() }}_{{ hook.name }}(){
