@@ -26,7 +26,7 @@ def _get_services_for_groups():
     if app.config["DISABLE_GROUP_CHECK"]:
         return app.config["services"]
 
-    return { service.name : service for service in f }
+    return { service.clean_name() : service for service in f }
 
 
 def parse_xauth_groups():

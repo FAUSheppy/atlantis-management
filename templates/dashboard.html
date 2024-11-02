@@ -5,8 +5,8 @@
         <!--        <a href="/oauth2/sign_out" class="navbar-el">Logout</a> -->
     </div>
     <div class="main-container">
-        {% for service_name, service in services.items() %}
-            <h3 class="action-title mt-4">{{ service_name }}</h3>
+        {% for service_clean_name, service in services.items() %}
+            <h3 class="action-title mt-4">{{ service.name }}</h3>
             <div class="seperator">
             <hr>
             </div>
