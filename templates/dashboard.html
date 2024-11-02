@@ -77,7 +77,7 @@
                                 status_update_{{ hook.name }}()
                                 event.srcElement.disabled = true
                             }
-                            async function status_update_{{ service_name }}_{{ hook.name }}(){
+                            async function status_update_{{ service.clean_name() }}_{{ hook.name }}(){
                                 let url = "/endpoints?service={{ service.clean_name() }}&endpoint={{ hook.name }}"
                                 let response = await fetch(url)
                                 let data = await response.json();
@@ -88,8 +88,8 @@
                                     target.innerHTML = data.title + " " + data.message
                                 }
                             }
-                            status_update_{{ service_name }}_{{ hook.name }}()
-                            setInterval(status_update_{{ service_name }}_{{ hook.name }}, 5000)
+                            status_update_{{ service.clean_name() }}_{{ hook.name }}()
+                            setInterval(status_update_{{ service.clean_name() }}_{{ hook.name }}, 5000)
                         </script>
                     </div>
                 {% endif %}
