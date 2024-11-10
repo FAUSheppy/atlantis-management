@@ -1,0 +1,9 @@
+[Unit]
+Description=Run Atlantis Status Script every 10 seconds
+
+[Timer]
+OnBootSec=60s
+OnUnitActiveSec=10s
+
+[Install]
+WantedBy=timers.target

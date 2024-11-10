@@ -1,0 +1,13 @@
+Description=Run Atlantis Array Action and Status Script
+
+[Service]
+Type=oneshot
+WorkingDirectory=/path/to/client_scripts/
+ExecStart=/usr/bin/python passive_endpoint_client.py \
+    --server URL \
+    --service SERVICE \
+    --operation OPERATION \
+    --status-endpoint NONE \
+    --token TOKEN \
+    --action-script ./action_wake_on_lan.py \
+    --status-script ./status_http.py
