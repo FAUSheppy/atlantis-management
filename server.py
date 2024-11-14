@@ -39,7 +39,7 @@ def parse_xauth_groups():
 
 def _load_services():
     '''Load all service YAML files'''
-   
+
     services_dict = {}
     for fname in os.listdir(SERVICES_DIR):
 
@@ -52,7 +52,7 @@ def _load_services():
                 loaded_yaml = yaml.safe_load(f)
             except ValueError as e:
                 raise e # TODO
-    
+
             try:
 
                 s = services.Service(loaded_yaml)
@@ -69,9 +69,9 @@ def _load_services():
             except services.ServiceLoadError as e:
                 print(e)
                 sys.exit(1)
-            
+
     return services_dict
-            
+
 
 def webhook(target, payload, auth):
     pass
@@ -88,12 +88,16 @@ def register_service_location(location, payload, auth):
     pass
     # request service start #
 
-@app.route("/hook-relay", methods=["POST"])
+@app.route("/hook-relay", methods=["GET", "POST"])
 def hook_relay():
     '''Register passive hooks and relay hooks to endpoints without revealing URLs and passwords'''
 
     service = flask.request.args.get("service")
     operation = flask.request.args.get("operation")
+    is_status_query = flask.request.args.get("statusquery")
+
+    if flask.request.method == "GET" and not is_status_query:
+        return ("GET Requests to Hook Relay must be marked as 'statusquery'", 405)
 
     # handle active & passive incoming hooks #
     if services.Service.clean_name(service) in _get_services_for_groups():
@@ -101,13 +105,20 @@ def hook_relay():
         for hook in s.hook_operations:
             if hook.name == operation:
                 if hook.passive:
+
+                    if flask.request.method == "GET":
+                        return ("GET is not allowed for passive services", 405)
+
                     payload = flask.request.json
                     if not payload:
                         payload = { "auto": True }
                     app.config["PASSIVE_HOOKS"].update({ s.clean_name() + hook.name : payload })
                     return ("", 204)
                 else:
-                    return hook.location.query(flask.request.json)
+                    if flask.request.method == "GET":
+                        return hook.location.query(json=None, method="GET") # status query
+                    else:
+                        return hook.location.query(flask.request.json) # api call
 
     return ("Operation: {} for service {} not found".format(operation, service), 404)
 
@@ -130,14 +141,14 @@ def info_status_endpoint():
                 if flask.request.method == "GET":
                     return endpoint_obj.payload
                 elif flask.request.method == "POST":
-                    endpoint_obj.payload = flask.request.json                
+                    endpoint_obj.payload = flask.request.json
                     return ("Endpoint Updatet", 200)
                 else:
                     return ("Unsupported method", 405)
             else:
                 return (f"Service {service} and {endpoint} found, but token invalid or missing", 405)
         else:
-            return (f"Service {service} found, but not endpoint {endpoint}", 405)  
+            return (f"Service {service} found, but not endpoint {endpoint}", 405)
     else:
         return (f"Service {service} not found", 405)
 

@@ -33,7 +33,10 @@ class Location:
             return copy
 
 
-    def query(self, json=None):
+    def query(self, json=None, method=None):
+
+        # select correct method based on args #
+        method_selected = method or self.method
 
         if self.multi_url:
             urls = self.url
@@ -41,15 +44,14 @@ class Location:
             urls = [self.url]
 
         for url in urls:
-            print(self.method)
-            if self.method == "GET":
+            if method_selected == "GET":
                 r = requests.get(url, auth=(self.user, self.password), params=self.args)
                 r.raise_for_status()
                 try:
                     return r.json()
                 except requests.exceptions.JSONDecodeError:
                     return { "error" : "Request returned no JSON"}
-            elif self.method == "POST":
+            elif method_selected == "POST":
                 r = requests.post(url, auth=(self.user, self.password), json=json, params=self.args)
                 r.raise_for_status()
                 try:
