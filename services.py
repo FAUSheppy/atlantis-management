@@ -127,7 +127,7 @@ class Service:
     def __init__(self, obj):
 
         self.name = obj.get("name")
-        self.endpoints_list = [Endpoint(e, self) for e in obj.get("register_endpoints")]
+        self.endpoints_list = [Endpoint(e, self) for e in obj.get("register_endpoints") or []]
         self.endpoints = { e.name : e for e in self.endpoints_list }
         self.groups = obj.get("groups")
 
