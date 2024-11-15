@@ -43,6 +43,9 @@ def _load_services():
     services_dict = {}
     for fname in os.listdir(SERVICES_DIR):
 
+        if not (fname.endswith(".yaml") or fname.endswith(".yml")):
+            continue
+
         with open(os.path.join(SERVICES_DIR, fname)) as f:
 
             try:
