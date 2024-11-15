@@ -2,7 +2,7 @@ import requests
 
 class Location:
 
-    def __init__(self, tupel, method="GET"):
+    def __init__(self, tupel):
 
         key, target = tupel
 
@@ -19,7 +19,7 @@ class Location:
         self.client_secret = target.get("client_secret")
         self.client_secret_field = target.get("client_secret_field") or "secret"
         self.password = target.get("pass") or target.get("password")
-        self.method = method
+        self.method = target.get("method") or "GET"
 
     def args_f(self):
 
@@ -50,7 +50,7 @@ class Location:
                 except requests.exceptions.JSONDecodeError:
                     return { "error" : "Request returned no JSON"}
             elif self.method == "POST":
-                r = requests.post(url, auth=(self.user, self.password), json=json)
+                r = requests.post(url, auth=(self.user, self.password), json=json, params=self.args)
                 r.raise_for_status()
                 try:
                     return r.json()
