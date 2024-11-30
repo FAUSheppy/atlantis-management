@@ -77,7 +77,6 @@
                                 status_update_{{ service.clean_name() }}_{{ hook.name }}()
                                 event.srcElement.disabled = true
                             }
-                            {% if hook.status_url %}
                             async function status_update_{{ service.clean_name() }}_{{ hook.name }}(){
                                 {% if hook.passive %}
                                 let url = "/endpoints?service={{ service.clean_name() }}&endpoint={{ hook.name }}"
@@ -95,7 +94,6 @@
                             }
                             status_update_{{ service.clean_name() }}_{{ hook.name }}()
                             setInterval(status_update_{{ service.clean_name() }}_{{ hook.name }}, 5000)
-                            {% endif %}
                         </script>
                     </div>
                 {% endif %}
