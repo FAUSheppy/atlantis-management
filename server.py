@@ -113,6 +113,10 @@ def hook_relay():
                     if not payload:
                         payload = { "auto": True }
                     app.config["PASSIVE_HOOKS"].update({ s.clean_name() + hook.name : payload })
+                    endpoint = s.endpoints.get(hook.name)
+                    endpoint.payload = {
+                        "message" : "Request queued. Waiting for relay to acknowledge it"
+                    }
                     return ("", 204)
                 else:
                     if flask.request.method == "GET":

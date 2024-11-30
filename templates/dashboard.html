@@ -18,7 +18,7 @@
 					        	{{ hook.name.replace("_", " ") }}
 					        </button>
                             <div id="status-target-{{ hook.name }}" class="pt-2 col-6 status-target">
-
+                                Waiting for information..
                             </div>
                         </div>
                         <script>
@@ -60,10 +60,24 @@
 						    	{{ hook.name.replace("_", " ") }}
 						    </button>
                             <div id="status-target-{{ hook.name }}" class="pt-2 col-6 status-target">
+                                Waiting for information..
+                            </div>
+                            <div id="spinner-{{ hook.name }}" class="spinner-border text-alert"
+                                 role="status" style="display: none;">
+                                <span class="visually-hidden"></span>
+                            </div>
                         </div>
 
-                        </div>
                         <script>
+                            function waiting_spinner_{{ service.clean_name() }}() {
+                                const statusTarget = document.getElementById("status-target-{{ hook.name }}");
+                                const spinner = document.getElementById("spinner-{{ hook.name }}");
+                                if (statusTarget.innerHTML.includes("Waiting")) {
+                                    spinner.style.display = "inline-block";
+                                } else {
+                                    spinner.style.display = "none";
+                                }
+                            }
                             async function query_{{ service.clean_name() }}_{{ hook.name }}(){
                                 let url = "/hook-relay?service={{ service.clean_name() }}&operation={{ hook.name }}"
                                 let response = await fetch(url, { 
@@ -75,7 +89,7 @@
                                 })
                                 // let data = await response.json();
                                 status_update_{{ service.clean_name() }}_{{ hook.name }}()
-                                event.srcElement.disabled = true
+                                //event.srcElement.disabled = true
                             }
                             async function status_update_{{ service.clean_name() }}_{{ hook.name }}(){
                                 {% if hook.passive %}
@@ -86,11 +100,12 @@
                                 let response = await fetch(url)
                                 let data = await response.json();
                                 let target = document.getElementById("status-target-{{ hook.name }}")
-                                if(!data.title){
-                                    target.innerHTML = "No status info available"
+                                if(!data.title && !data.message){
+                                    target.innerHTML = "Waiting for relay to send us status info.."
                                 }else{
                                     target.innerHTML = data.title + " " + data.message
                                 }
+                                waiting_spinner_{{ service.clean_name() }}()
                             }
                             status_update_{{ service.clean_name() }}_{{ hook.name }}()
                             setInterval(status_update_{{ service.clean_name() }}_{{ hook.name }}, 5000)
