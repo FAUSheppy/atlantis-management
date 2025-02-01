@@ -63,6 +63,8 @@ You can have two different types of `hook_operations`, **active** and **passive*
 - A passive operation, requires a service in *hook_operations* and a endpoint in *register_endpoint*. One the service has been clicked. The server will provide this information at the give endpoint.
 - A active operation will call one or multiple URLs, if the endpoint requires the client itself to call it (e.g. because it needs the client IP, set `client: true`). If the endpoint is protected, and you do not want to leak a permanent secret to the client, you can use the `client_secret` field to generate a one-time-secret (if your application support this).
 
+**Example:**
+
     name: Atlantis Array
     hook_operations:
         - start_service:
