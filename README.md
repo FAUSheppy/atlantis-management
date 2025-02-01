@@ -88,6 +88,8 @@ You can have two different types of `hook_operations`, **active** and **passive*
 
 You can configure groups for the entire section, in the above example, only the *admin*-group can use the services of the group *"Atlantis Array"*. A name is required for every file. You can have infinite files, but enpoints are not currently checked for duplications across files.
 
+The `unlock_service` you see here is the [Atlantis IP Gate](https://github.com/FAUSheppy/atlantis-ip-gate).
+
 # Setting up Relay
 ## Initial Setup
 Clone the Repository to your local relay, which is in the same physical subnet as your offline server (i.e. a Pine64 or Raspi in your home), see the `client_scripts`-directory. The python scripts in this directory are configured by identically named `.yaml` files.
