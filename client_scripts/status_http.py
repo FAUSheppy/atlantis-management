@@ -86,8 +86,8 @@ if __name__ == "__main__":
     #   http -> server reachable but webservice unavailable
     #   both works -> server reachable/ok
     if not is_icmp_reachable(target):
-        print("Server Unreachable$$Ping Failed")
+        print("Target Offline - Relay Online$$(may accept requests)")
     elif not is_up(target_webservice):
-        print("Webservice Down$$Server is up but webservice is not")
+        print("Webservice Down$$(Server is up but webservice is not)")
     else:
         print("Up$$Started successfully")

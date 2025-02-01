@@ -38,4 +38,4 @@ if __name__ == "__main__":
 
     # execute action #
     wakeonlan.send_magic_packet(target)
-    print("Wake signal sent$$Waiting for status information")
+    print("Relay picked up request and replied with 'Wake Requested'$$Waiting for status update (~10-15s)")
