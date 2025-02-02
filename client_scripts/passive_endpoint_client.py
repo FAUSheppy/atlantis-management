@@ -46,6 +46,10 @@ class Status:
     def check_status(self):
         '''Check current status and send it to server'''
 
+        if not self.status_script:
+            self._send_status("No Status script for this service", "(but relay is listening)")
+            return
+
         # prepare command #
         cmd = [self.status_script, self.last_status, self.timestamp_last_status.isoformat()]
         if args.action_script.endswith(".py"):
