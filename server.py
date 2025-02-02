@@ -115,7 +115,8 @@ def hook_relay():
                     app.config["PASSIVE_HOOKS"].update({ s.clean_name() + hook.name : payload })
                     endpoint = s.endpoints.get(hook.name)
                     endpoint.payload = {
-                        "message" : "Request queued. Waiting for relay to acknowledge it"
+                        "title" : "Request queued",
+                        "message" : "Waiting for relay to acknowledge it"
                     }
                     return ("", 204)
                 else:
