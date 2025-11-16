@@ -13,6 +13,9 @@ import services
 SERVICES_DIR = "services"
 GROUPS_SEPERATOR = ","
 
+AUTH_USER_HEADER = os.environ.get("AUTH_USER_HEADER") or "X-Forwarded-Preferred-Username"
+AUTH_GROUP_HEADER = os.environ.get("AUTH_GROUP_HEADER") or "X-Forwarded-Groups"
+
 app = flask.Flask("Atlantis Management")
 
 def _get_services_for_groups():
@@ -31,7 +34,7 @@ def _get_services_for_groups():
 
 def parse_xauth_groups():
     '''Parse X-Auth Headers'''
-    groups = flask.request.headers.get("X-Forwarded-Groups")
+    groups = flask.request.headers.get(AUTH_GROUP_HEADER)
     if not groups:
         return []
     else:
@@ -187,7 +190,7 @@ def passive_hook_endpoint():
 @app.route("/")
 def dashboard():
 
-    user = flask.request.headers.get("X-Forwarded-Preferred-Username")
+    user = flask.request.headers.get(AUTH_USER_HEADER)
     ip = flask.request.headers.get("X-Forwarded-For")
 
     return flask.render_template("dashboard.html", services=_get_services_for_groups())
