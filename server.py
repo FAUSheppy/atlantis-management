@@ -55,16 +55,23 @@ def _load_services():
 
             try:
 
-                s = services.Service(loaded_yaml)
-                s_key = s.clean_name()
+                # transform into list if one-per-file style config #
+                if not isinstance(loaded_yaml, list):
+                    loaded_yaml = [loaded_yaml]
 
-                # check valid key #
-                if not s_key:
-                    raise services.ServiceLoadError(f"Name: {s.name} is not valid ({fname})")
-                elif s_key in services_dict:
-                    raise services.ServiceLoadError(f"{s_key} already exists ({fname})")
+                for element in loaded_yaml:
 
-                services_dict.update({ s_key: s })
+                    s = services.Service(element)
+                    s_key = s.clean_name()
+
+                    # check valid key #
+                    if not s_key:
+                        raise services.ServiceLoadError(f"Name: {s.name} is not valid ({fname})")
+                    elif s_key in services_dict:
+                        raise services.ServiceLoadError(f"{s_key} already exists ({fname})")
+
+                    services_dict.update({ s_key: s })
+                    print(services_dict)
 
             except services.ServiceLoadError as e:
                 print(e)
